@@ -1,37 +1,36 @@
-import { Vehicle } from './vehicle.entity';
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Vehicle } from './vehicle.entity';
 
 @Injectable()
 export class VehicleService {
-    //FIXME: change to db   
-    private storage: Vehicle[] = [];
-    private lastId = 1;
+    constructor(
+        @InjectRepository(Vehicle)
+        private readonly vehicleRepository: Repository<Vehicle>,
+    ) {}   
 
-    getVehicle(id: number): Vehicle {
-        const vehicle = this.storage.find(t => t.id === id);
-        if(!vehicle) {
-            throw new Error('Not Found');
-        }
-
-        return vehicle;
+    async getVehicle(id: number): Promise<Vehicle> {
+        return await this.vehicleRepository.findOneOrFail(id);
     }
 
-    getVehicles(): Vehicle[]  {
-        return this.storage;
+    async getVehicles(): Promise<Vehicle[]>  {
+        return await this.vehicleRepository.find();
     }
 
-    createVehicle(vehicle: Vehicle) {
-        vehicle.id = this.lastId++;
-        this.storage.push(vehicle);
+    async createVehicle(vehicle: Vehicle): Promise<Vehicle> {
+        return await this.vehicleRepository.save(vehicle);
     }
     
-    updateVehicle(id: number,vehicle: Vehicle) {
-        const vehicleIndex = this.storage.findIndex(t => t.id === id);  //vehicle.id
-        this.storage[vehicleIndex] = vehicle;
+    async updateVehicle(id: number,vehicle: Vehicle): Promise<Vehicle> {
+        const oldVehicle = await this.vehicleRepository.findOneOrFail(id);
+        const newVehicle = { ... oldVehicle, ... vehicle};
+
+        return await this.vehicleRepository.save(newVehicle);
     }
 
-    deleteVehicle(id: number) {
-        const vehicleIndex = this.storage.findIndex(t => t.id === id);
-        this.storage.splice(vehicleIndex, 1);
+    async deleteVehicle(id: number): Promise<boolean> {
+        await this.vehicleRepository.delete(id);
+        return true;
     }
 }
