@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehicleModule } from './vehicle/vehicle.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
             useUnifiedTopology: true,
             useNewUrlParser: true
         }),
+        AuthModule,
     ],
 })
 export class BootstrapModule {}
