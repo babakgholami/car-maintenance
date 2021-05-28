@@ -1,9 +1,12 @@
 import { 
     Controller, 
-    Post, 
+    Post,
+    Query,
+    Req,
     Body, 
     BadRequestException 
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 
@@ -27,4 +30,15 @@ export class AuthController {
         
         return await this.authService.register(user);
     }
+
+
+    @Post('confirm')
+    async confirm( 
+        @Query('email') email,
+        @Query('token') token,
+    ) {
+
+        return await this.authService.confirm(email, token);
+    }
+
 }

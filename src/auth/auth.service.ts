@@ -1,13 +1,17 @@
 import { 
     Injectable, 
     UnauthorizedException,
-    ConflictException
+    ConflictException,
+    HttpException,
+    HttpStatus,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { sha512 } from 'hash.js';
 import { JwtService } from '@nestjs/jwt';
+import { MailService } from '../mail/mail.service';
+import { join } from 'path';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +19,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        private mailService: MailService,
     ) {}
 
     async login(email: string, password: string) {
@@ -38,6 +43,16 @@ export class AuthService {
         };
     }
 
+    async confirm(email: string, token: string) {
+        const user = await this.userRepository.findOne({ 'email': email, 'activationCode': token });
+        if(!user) {
+            throw new HttpException("Your activation code is not valid, try again or contact admin", HttpStatus.NOT_FOUND);        
+        }
+
+        //TODO: check it
+        return await this.userRepository.update({email: user.email}, {activationCode: '', activateTime: Date()});
+    }
+
     async getUserById(id: number) {
         return await this.userRepository.findOne(id);
     }
@@ -48,11 +63,26 @@ export class AuthService {
             throw new ConflictException('User already exist');
         }
 
+        let activationCode = Math.random().toString(36).substring(2);
+
         user.password = sha512().update(user.password).digest('hex');
 
-        return await this.userRepository.save({
+
+        let result = await this.userRepository.save({
             ... user,
-            group: "Quest",
+            activationCode: activationCode,
+            group: "Trial",
         });
+
+        //TODO: try with valid smpt email
+        // if(result) {
+        //     await this.mailService.sendUserConfirmation(user, activationCode);
+        // }
+
+        return result;
     }
+
+
+
+
 }

@@ -3,11 +3,15 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehicleModule } from './vehicle/vehicle.module';
 import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
+import { RepairModule } from './repair/repair.module';
 
 @Module({
     imports: [
         VehicleModule,
-        ConfigModule.forRoot(),
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
         TypeOrmModule.forRoot({
             type: 'mongodb',
             url: process.env.MONGODB_CONNECTION_STRING,
@@ -20,6 +24,8 @@ import { AuthModule } from './auth/auth.module';
             useNewUrlParser: true
         }),
         AuthModule,
+        MailModule,
+        RepairModule,
     ],
 })
 export class BootstrapModule {}

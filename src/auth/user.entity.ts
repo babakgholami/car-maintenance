@@ -17,6 +17,8 @@ export class User {
     @Column() firstName: string;
     @Column() lastName: string;
     @Column() userGroup: string;
+    @Column() activationCode: string;
+    @Column() activateTime: Date;
     @CreateDateColumn() createTime: Date;
     @UpdateDateColumn() updateTime: Date;
 }
